@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
-import { fetchCollection } from '../api.js'
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const apiBaseUrl = codespaceName ? `https://${codespaceName}-8000.app.github.dev` : 'http://localhost:8000'
+const leaderboardEndpoint = `${apiBaseUrl}/api/leaderboard/`
+
+async function fetchLeaderboard() {
+  const response = await fetch(leaderboardEndpoint)
+  if (!response.ok) throw new Error(`Could not load leaderboard (${response.status})`)
+  const payload = await response.json()
+  return Array.isArray(payload) ? payload : payload.data ?? payload.results ?? payload.items ?? []
+}
 
 function Leaderboard() {
   const [entries, setEntries] = useState(null)
   const [error, setError] = useState('')
   useEffect(() => {
-    fetchCollection('leaderboard').then(setEntries).catch((reason) => setError(reason.message))
+    fetchLeaderboard().then(setEntries).catch((reason) => setError(reason.message))
   }, [])
 
   const sortedEntries = entries ? [...entries].sort((first, second) => (first.rank ?? 999) - (second.rank ?? 999)) : []

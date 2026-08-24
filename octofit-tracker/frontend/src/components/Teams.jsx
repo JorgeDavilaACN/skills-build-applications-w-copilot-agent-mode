@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
-import { fetchCollection } from '../api.js'
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const apiBaseUrl = codespaceName ? `https://${codespaceName}-8000.app.github.dev` : 'http://localhost:8000'
+const teamsEndpoint = `${apiBaseUrl}/api/teams/`
+
+async function fetchTeams() {
+  const response = await fetch(teamsEndpoint)
+  if (!response.ok) throw new Error(`Could not load teams (${response.status})`)
+  const payload = await response.json()
+  return Array.isArray(payload) ? payload : payload.data ?? payload.results ?? payload.items ?? []
+}
 
 function Teams() {
   const [teams, setTeams] = useState(null)
   const [error, setError] = useState('')
   useEffect(() => {
-    fetchCollection('teams').then(setTeams).catch((reason) => setError(reason.message))
+    fetchTeams().then(setTeams).catch((reason) => setError(reason.message))
   }, [])
 
   return (

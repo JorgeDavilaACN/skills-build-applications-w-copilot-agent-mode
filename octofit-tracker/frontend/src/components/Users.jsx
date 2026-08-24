@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
-import { fetchCollection } from '../api.js'
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const apiBaseUrl = codespaceName ? `https://${codespaceName}-8000.app.github.dev` : 'http://localhost:8000'
+const usersEndpoint = `${apiBaseUrl}/api/users/`
+
+async function fetchUsers() {
+  const response = await fetch(usersEndpoint)
+  if (!response.ok) throw new Error(`Could not load users (${response.status})`)
+  const payload = await response.json()
+  return Array.isArray(payload) ? payload : payload.data ?? payload.results ?? payload.items ?? []
+}
 
 function Users() {
   const [users, setUsers] = useState(null)
   const [error, setError] = useState('')
   useEffect(() => {
-    fetchCollection('users').then(setUsers).catch((reason) => setError(reason.message))
+    fetchUsers().then(setUsers).catch((reason) => setError(reason.message))
   }, [])
 
   return (
